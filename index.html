@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MMS Suporte Logística - Gerador de Relatório v2</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         :root {
             --primary-color: #0056b3;
@@ -370,14 +371,13 @@
             </div>
 
             <div class="actions-bar">
-                <button type="submit" class="btn">Gerar Relatório e Imprimir PDF</button>
+                <button type="submit" class="btn">Visualizar Relatório</button>
             </div>
         </form>
     </div>
 
-    <!-- Container do Preview do PDF -->
     <div id="preview-container">
-        <div class="report-print-box">
+        <div class="report-print-box" id="pdf-content">
             <div class="report-header">
                 <div class="report-logo">MMS</div>
                 <div class="report-sublogo">SUPORTE LOGÍSTICA</div>
@@ -391,13 +391,13 @@
             <div class="report-row"><span class="report-label">Modal (helicóptero ou lancha):</span> <span id="p_modal"></span></div>
             
             <div class="report-row" style="margin-top: 15px;"><span class="report-label">Horário de Saída do Hotel (previsto e real):</span></div>
-            <div class="report-row">Previsto: <span id="p_hotel_prev"></span>h &nbsp;&nbsp;&nbsp;&nbsp; Real: <span id="p_hotel_real"></span>h</div>
+            <div class="report-row">Previsto: <span id="p_hotel_prev"></span> &nbsp;&nbsp;&nbsp;&nbsp; Real: <span id="p_hotel_real"></span></div>
 
             <div class="report-row" style="margin-top: 15px;"><span class="report-label">Horários de Embarque (previsto e real):</span></div>
-            <div class="report-row">Previsto: <span id="p_emb_prev"></span>h &nbsp;&nbsp;&nbsp;&nbsp; Real: <span id="p_emb_real"></span>h</div>
+            <div class="report-row">Previsto: <span id="p_emb_prev"></span> &nbsp;&nbsp;&nbsp;&nbsp; Real: <span id="p_emb_real"></span></div>
 
             <div class="report-row" style="margin-top: 15px;"><span class="report-label">Horário Inicial e de finalização:</span></div>
-            <div class="report-row">Início: <span id="p_atend_ini"></span>h &nbsp;&nbsp; às &nbsp;&nbsp; Fim: <span id="p_atend_fim"></span>h</div>
+            <div class="report-row">Início: <span id="p_atend_ini"></span> &nbsp;&nbsp; às &nbsp;&nbsp; Fim: <span id="p_atend_fim"></span></div>
 
             <div class="report-row" style="margin-top: 15px;"><span class="report-label">Nome do Preposto:</span> <span id="p_preposto"></span></div>
 
@@ -426,8 +426,8 @@
         </div>
         
         <div style="text-align: center; margin-top: 20px;" class="no-print">
-            <button onclick="window.print()" class="btn" style="background-color: #28a745;">Confirmar e Salvar PDF</button>
-            <button onclick="compartilharRelatorio()" class="btn" style="background-color: #007bff; margin-left: 10px;">Compartilhar Relatório</button>
+            <button onclick="baixarPDF()" class="btn" style="background-color: #28a745;">Baixar PDF</button>
+            <button onclick="compartilharRelatorio()" class="btn" style="background-color: #007bff; margin-left: 10px;">Compartilhar PDF</button>
             <button onclick="document.getElementById('preview-container').style.display='none'" class="btn" style="background-color: #6c757d; margin-left: 10px;">Voltar ao Formulário</button>
         </div>
     </div>
@@ -436,6 +436,11 @@
         function formatMarkdown(text) {
             if (!text) return "N/A";
             return text.replace(/\*(.*?)\*/g, '<strong>$1</strong>');
+        }
+
+        function formatarHoraExibicao(valor) {
+            if (!valor) return "N/A";
+            return valor.replace(':', 'h') + 'm';
         }
 
         function generateReport(event) {
@@ -473,12 +478,12 @@
             document.getElementById('p_modal').innerText = modal;
             document.getElementById('p_preposto').innerText = preposto;
             
-            document.getElementById('p_hotel_prev').innerText = hotelPrev.replace(':', 'h') + 'm';
-            document.getElementById('p_hotel_real').innerText = hotelReal.replace(':', 'h') + 'm';
-            document.getElementById('p_emb_prev').innerText = embPrev.replace(':', 'h') + 'm';
-            document.getElementById('p_emb_real').innerText = embReal.replace(':', 'h') + 'm';
-            document.getElementById('p_atend_ini').innerText = atendIni.replace(':', 'h') + 'm';
-            document.getElementById('p_atend_fim').innerText = atendFim.replace(':', 'h') + 'm';
+            document.getElementById('p_hotel_prev').innerText = formatarHoraExibicao(hotelPrev);
+            document.getElementById('p_hotel_real').innerText = formatarHoraExibicao(hotelReal);
+            document.getElementById('p_emb_prev').innerText = formatarHoraExibicao(embPrev);
+            document.getElementById('p_emb_real').innerText = formatarHoraExibicao(embReal);
+            document.getElementById('p_atend_ini').innerText = formatarHoraExibicao(atendIni);
+            document.getElementById('p_atend_fim').innerText = formatarHoraExibicao(atendFim);
             
             document.getElementById('p_info_troca').innerHTML = formatMarkdown(infoTroca);
             document.getElementById('p_embarcando').innerHTML = formatMarkdown(embarcando);
@@ -489,30 +494,63 @@
             previewContainer.scrollIntoView({ behavior: 'smooth' });
         }
 
-        function compartilharRelatorio() {
-            const empresa = document.getElementById('p_empresas').innerText;
-            const unidade = document.getElementById('p_unidade').innerText;
-            const data = document.getElementById('p_data').innerText;
-            const preposto = document.getElementById('p_preposto').innerText;
+        // Configuração padrão do html2pdf
+        function obterConfigPDF(nomeArquivo) {
+            return {
+                margin:       10,
+                filename:     nomeArquivo,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+        }
 
-            const textoCompartilhar = `📋 *MMS Suporte Logística - Relatório de Troca de Turma*\n\n` +
-                                     `• *Empresa:* ${empresa}\n` +
-                                     `• *Unidade:* ${unidade}\n` +
-                                     `• *Data:* ${data}\n` +
-                                     `• *Preposto:* ${preposto}\n\n` +
-                                     `Confira o relatório completo acessando o link do sistema.`;
+        function obterNomeArquivo() {
+            const empresa = document.getElementById('p_empresas').innerText || "MMS";
+            const unidade = document.getElementById('p_unidade').innerText || "Relatorio";
+            return `Relatorio_${empresa}_${unidade.replace(/\s+/g, '_')}.pdf`;
+        }
 
-            if (navigator.share) {
-                navigator.share({
-                    title: 'Relatório MMS Suporte Logística',
-                    text: textoCompartilhar,
-                    url: window.location.href
-                })
-                .then(() => console.log('Compartilhado com sucesso!'))
-                .catch((error) => console.log('Erro ao compartilhar:', error));
-            } else {
-                const urlWhatsApp = `https://api.whatsapp.com/send?text=${encodeURIComponent(textoCompartilhar + " " + window.location.href)}`;
-                window.open(urlWhatsApp, '_blank');
+        function baixarPDF() {
+            const elemento = document.getElementById('pdf-content');
+            const nomeArquivo = obterNomeArquivo();
+            html2pdf().set(obterConfigPDF(nomeArquivo)).from(elemento).save();
+        }
+
+        async function compartilharRelatorio() {
+            const elemento = document.getElementById('pdf-content');
+            const nomeArquivo = obterNomeArquivo();
+            
+            const btnCompartilhar = event.target;
+            const textoOriginal = btnCompartilhar.innerText;
+            btnCompartilhar.innerText = "Gerando PDF...";
+            btnCompartilhar.disabled = true;
+
+            try {
+                // Gera o PDF em segundo plano como um arquivo do tipo Blob (Binary Large Object)
+                const pdfWorker = html2pdf().set(obterConfigPDF(nomeArquivo)).from(elemento).outputPdf('blob');
+                const pdfBlob = await pdfWorker;
+                
+                // Converte o blob em um arquivo real aceito pelo sistema operacional
+                const arquivoPDF = new File([pdfBlob], nomeArquivo, { type: 'application/pdf' });
+
+                // Verifica se o dispositivo do usuário (celular ou PC moderno) aceita compartilhar arquivos nativamente
+                if (navigator.canShare && navigator.canShare({ files: [arquivoPDF] })) {
+                    await navigator.share({
+                        files: [arquivoPDF],
+                        title: 'Relatório MMS Suporte Logística',
+                        text: 'Segue em anexo o Relatório de Troca de Turma gerado pelo sistema.'
+                    });
+                } else {
+                    // Fallback caso o navegador não tenha permissão de arquivo (como navegadores web de PCs antigos)
+                    alert("Seu navegador não oferece suporte direto para envio do arquivo via botão. Use a opção 'Baixar PDF' e envie o arquivo baixado diretamente pelo WhatsApp ou E-mail.");
+                }
+            } catch (error) {
+                console.error('Erro ao compartilhar o PDF:', error);
+                alert("Houve um erro ao processar o compartilhamento do arquivo.");
+            } finally {
+                btnCompartilhar.innerText = textoOriginal;
+                btnCompartilhar.disabled = false;
             }
         }
     </script>
