@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MMS Suporte Logística - Gerador de Relatório v2</title>
-    <!-- Inclusão da Biblioteca Correta para Conversão de PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         :root {
@@ -329,7 +328,6 @@
             <h1>Preenchimento de Relatório</h1>
         </header>
 
-        <!-- NOVO: Seletor Inicial de Tipo de Relatório -->
         <div class="selector-section">
             <div class="selector-title">Selecione o Tipo de Relatório:</div>
             <div class="radio-tile-group">
@@ -356,7 +354,8 @@
                             <option value="DOF">DOF</option>
                             <option value="TFMC/DOF">TFMC/DOF</option>
                             <option value="CONSTELLATION">CONSTELLATION</option>
-                            <option value="OUTROS">OUTROS</option>
+                            <option value="SS7">SS7</option>
+                            <option value="Gran Energia">Gran Energia</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -375,11 +374,9 @@
                         <input type="text" id="local" placeholder="Ex: Macaé, Porto, etc." required>
                     </div>
                     <div class="form-group">
-                        <!-- ID alterado dinamicamente para comportar Modal ou ASO/MEDVAC -->
                         <label for="modal" id="lbl_modal">Modal:</label>
                         <select id="modal" required>
-                            <!-- Opções mudam via JavaScript conforme a seleção inicial -->
-                        </select>
+                            </select>
                     </div>
                 </div>
 
@@ -402,7 +399,6 @@
                     </div>
                 </div>
 
-                <!-- Label muda de "Embarque" para "Atendimento" se for ASO -->
                 <label style="color: #002d62;" id="lbl_secao_embarque">Embarque</label>
                 <div class="grid-2">
                     <div class="form-group">
@@ -415,7 +411,7 @@
                     </div>
                 </div>
 
-                <label style="color: #002d62;">Atendimento</label>
+                <label style="color: #002d62;" id="lbl_secao_suporte">Suporte</label>
                 <div class="grid-2">
                     <div class="form-group">
                         <label style="font-size: 12px; color: #555;">Início:</label>
@@ -434,7 +430,6 @@
                     <textarea id="info_troca" placeholder="Descreva os detalhes da operação..."></textarea>
                 </div>
 
-                <!-- Div de Passageiros para TROCA DE TURMA -->
                 <div class="grid-2" id="div_passageiros_troca">
                     <div class="form-group">
                         <label for="embarcando">Nomes Passageiros Embarcando:</label>
@@ -448,7 +443,6 @@
                     </div>
                 </div>
 
-                <!-- NOVO: Div de Passageiros Única para ASO / MEDVAC -->
                 <div class="form-group" id="div_passageiros_aso" style="display: none;">
                     <label for="passageiros_geral">Nome dos Passageiros / Nome dos Tripulantes:</label>
                     <textarea id="passageiros_geral" placeholder="Digite os nomes dos passageiros ou tripulantes..."></textarea>
@@ -463,7 +457,6 @@
         </form>
     </div>
 
-    <!-- Container do Preview do PDF -->
     <div id="preview-container">
         <div class="report-print-box" id="pdf-content">
             <div class="report-header">
@@ -484,7 +477,7 @@
             <div class="report-row" style="margin-top: 15px;"><span class="report-label" id="p_lbl_secao_embarque">Horários de Embarque (previsto e real):</span></div>
             <div class="report-row">Previsto: <span id="p_emb_prev"></span> &nbsp;&nbsp;&nbsp;&nbsp; Real: <span id="p_emb_real"></span></div>
 
-            <div class="report-row" style="margin-top: 15px;"><span class="report-label">Horário Inicial e de finalização:</span></div>
+            <div class="report-row" style="margin-top: 15px;"><span class="report-label" id="p_lbl_secao_suporte">Horário Inicial e de finalização do Suporte:</span></div>
             <div class="report-row">Início: <span id="p_atend_ini"></span> &nbsp;&nbsp; às &nbsp;&nbsp; Fim: <span id="p_atend_fim"></span></div>
 
             <div class="report-row" style="margin-top: 15px;"><span class="report-label">Nome do Preposto:</span> <span id="p_preposto"></span></div>
@@ -492,7 +485,6 @@
             <div class="report-row" style="margin-top: 15px;"><span class="report-label" id="p_lbl_secao_info">Informações sobre a troca de Turma:</span></div>
             <div class="report-row" id="p_info_troca" style="white-space: pre-wrap; margin-bottom: 25px;"></div>
 
-            <!-- Tabela Dinâmica: Troca de Turma -->
             <table class="report-table" id="p_table_troca">
                 <thead>
                     <tr>
@@ -508,7 +500,6 @@
                 </tbody>
             </table>
 
-            <!-- Tabela Dinâmica: ASO -->
             <table class="report-table" id="p_table_aso" style="display: none;">
                 <thead>
                     <tr>
@@ -547,7 +538,6 @@
             document.getElementById('preview-container').style.display = 'none';
 
             if (tipo === 'troca') {
-                // Configura interface para Troca de Turma
                 document.getElementById('lbl_modal').innerText = "Modal:";
                 selectModal.innerHTML = `
                     <option value="HELICÓPTERO">HELICÓPTERO</option>
@@ -555,21 +545,22 @@
                     <option value="ATRACADO">ATRACADO</option>
                 `;
                 document.getElementById('lbl_secao_embarque').innerText = "Embarque";
+                document.getElementById('lbl_secao_suporte').innerText = "Suporte"; // ALTERAÇÃO
                 document.getElementById('lbl_secao_info').innerText = "Informações da Turma";
                 document.getElementById('lbl_textarea_info').innerText = "Informações sobre a troca de Turma:";
                 
                 document.getElementById('div_passageiros_troca').style.display = 'grid';
                 document.getElementById('div_passageiros_aso').style.display = 'none';
             } else if (tipo === 'aso') {
-                // Configura interface para ASO / MEDVAC
                 document.getElementById('lbl_modal').innerText = "Opção:";
                 selectModal.innerHTML = `
                     <option value="ASO">ASO</option>
                     <option value="MEDVAC">MEDVAC</option>
                 `;
-                document.getElementById('lbl_secao_embarque').innerText = "Atendimento";
-                document.getElementById('lbl_secao_info').innerText = "Informações sobre o Atendimento";
-                document.getElementById('lbl_textarea_info').innerText = "Informações sobre o Atendimento:";
+                document.getElementById('lbl_secao_embarque').innerText = "Suporte"; // ALTERAÇÃO: "De embarque veio o nome suporte"
+                document.getElementById('lbl_secao_suporte').innerText = "Suporte"; // ALTERAÇÃO
+                document.getElementById('lbl_secao_info').innerText = "Informações sobre o Suporte"; // ALTERAÇÃO
+                document.getElementById('lbl_textarea_info').innerText = "Informações sobre o Suporte:"; // ALTERAÇÃO
                 
                 document.getElementById('div_passageiros_troca').style.display = 'none';
                 document.getElementById('div_passageiros_aso').style.display = 'block';
@@ -611,7 +602,6 @@
                 dataFormatada = parts[2] + '/' + parts[1] + '/' + parts[0];
             }
 
-            // Injetar dados comuns no Preview
             document.getElementById('p_empresas').innerText = empresas;
             document.getElementById('p_unidade').innerText = unidade;
             document.getElementById('p_data').innerText = dataFormatada;
@@ -626,11 +616,12 @@
             document.getElementById('p_atend_ini').innerText = formatarHoraExibicao(atendIni);
             document.getElementById('p_atend_fim').innerText = formatarHoraExibicao(atendFim);
 
-            // Ajustes Dinâmicos da Visualização final do PDF baseado na escolha inicial
+            // Ajustes Dinâmicos da Visualização do PDF baseados na escolha
             if (tipoAtivo === 'troca') {
                 document.getElementById('p_report_title').innerText = "RELATÓRIO DE TROCA DE TURMA";
                 document.getElementById('p_lbl_modal').innerText = "Modal (helicóptero ou lancha):";
                 document.getElementById('p_lbl_secao_embarque').innerText = "Horários de Embarque (previsto e real):";
+                document.getElementById('p_lbl_secao_suporte').innerText = "Horário Inicial e de finalização do Suporte:"; // ALTERAÇÃO
                 document.getElementById('p_lbl_secao_info').innerText = "Informações sobre a troca de Turma:";
                 
                 const embarcando = document.getElementById('embarcando').value;
@@ -641,10 +632,11 @@
                 document.getElementById('p_table_troca').style.display = 'table';
                 document.getElementById('p_table_aso').style.display = 'none';
             } else {
-                document.getElementById('p_report_title').innerText = "RELATÓRIO DE ATENDIMENTO ASO / MEDVAC";
+                document.getElementById('p_report_title').innerText = "RELATÓRIO DE SUPORTE ASO / MEDVAC"; // ALTERAÇÃO
                 document.getElementById('p_lbl_modal').innerText = "Opção:";
-                document.getElementById('p_lbl_secao_embarque').innerText = "Horários de Atendimento (previsto e real):";
-                document.getElementById('p_lbl_secao_info').innerText = "Informações sobre o Atendimento:";
+                document.getElementById('p_lbl_secao_embarque').innerText = "Horários de Suporte (previsto e real):"; // ALTERAÇÃO
+                document.getElementById('p_lbl_secao_suporte').innerText = "Horário Inicial e de finalização do Suporte:"; // ALTERAÇÃO
+                document.getElementById('p_lbl_secao_info').innerText = "Informações sobre o Suporte:"; // ALTERAÇÃO
                 
                 const passageirosGeral = document.getElementById('passageiros_geral').value;
                 document.getElementById('p_passageiros_geral').innerHTML = formatMarkdown(passageirosGeral);
@@ -676,7 +668,6 @@
             const dataOriginal = document.getElementById('p_data').innerText || "";
             const dataFormatadaParaNome = dataOriginal.replace(/\//g, '-');
             
-            // Adiciona o prefixo correto dependendo do relatório ativo
             const prefixo = tipoAtivo === 'aso' ? "ASO" : "Relatorio";
             const nomeGerado = `${prefixo}_${unidade}_${empresa}_${dataFormatadaParaNome}`;
             return `${nomeGerado.replace(/\s+/g, '_')}.pdf`;
@@ -688,7 +679,7 @@
             html2pdf().set(obterConfigPDF(nomeArquivo)).from(elemento).save();
         }
 
-        async function compartilharRelatorio(event) {
+        async function compartirRelatorio(event) {
             const elemento = document.getElementById('pdf-content');
             const nomeArquivo = obterNomeArquivo();
             
