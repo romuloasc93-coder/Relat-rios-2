@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MMS Suporte Logística - Gerador de Relatório v2</title>
+    <style>
+        :root {
+            --primary-color: #0056b3;
+            --secondary-color: #4da3ff;
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --border-color: #cccccc;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #002d62, #0056b3);
+            color: white;
+            padding: 25px;
+            text-align: center;
+            position: relative;
+        }
+
+        .logo-placeholder {
+            font-size: 24px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+            color: #4da3ff;
+        }
+
+        header h1 {
+            font-size: 22px;
+            text-transform: uppercase;
+        }
+
+        .form-section {
+            padding: 30px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            color: #002d62;
+            border-left: 4px solid var(--secondary-color);
+            padding-left: 10px;
+            margin-bottom: 20px;
+            margin-top: 20px;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .section-title:first-of-type {
+            margin-top: 0;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        input[type="text"], input[type="date"], input[type="time"], select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--primary-color);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .tip {
+            font-size: 12px;
+            color: #666;
+            margin-top: 4px;
+            font-style: italic;
+        }
+
+        .actions-bar {
+            background: #f9f9f9;
+            padding: 20px 30px;
+            border-top: 1px solid #eee;
+            text-align: right;
+        }
+
+        .btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn:hover {
+            background-color: #004085;
+        }
+
+        /* Preview / Print Styles */
+        #preview-container {
+            display: none;
+            background: white;
+            padding: 40px;
+            margin-top: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .report-print-box {
+            border: 1px solid #333;
+            padding: 20px;
+            position: relative;
+            background: #fff;
+        }
+
+        .report-header {
+            text-align: center;
+            border-bottom: 2px solid #333;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        .report-logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: #002d62;
+            margin-bottom: 5px;
+        }
+
+        .report-sublogo {
+            font-size: 12px;
+            font-weight: bold;
+            letter-spacing: 3px;
+            margin-bottom: 15px;
+        }
+
+        .report-title {
+            font-size: 18px;
+            font-weight: bold;
+            text-decoration: underline;
+            margin-bottom: 15px;
+        }
+
+        .report-row {
+            margin-bottom: 10px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .report-label {
+            font-weight: bold;
+        }
+
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .report-table th, .report-table td {
+            border: 1px solid #333;
+            padding: 10px;
+            text-align: left;
+            vertical-align: top;
+            width: 50%;
+        }
+
+        .report-footer {
+            margin-top: 40px;
+            border-top: 1px solid #666;
+            padding-top: 10px;
+            font-size: 11px;
+            text-align: center;
+            color: #555;
+            line-height: 1.4;
+        }
+
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #preview-container, #preview-container * {
+                visibility: visible;
+            }
+            #preview-container {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                margin: 0;
+                padding: 0;
+                display: block !important;
+            }
+            .btn, .actions-bar, header, .form-section {
+                display: none !important;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .grid-2, .grid-3 {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <div class="logo-placeholder">MMS</div>
+            <p style="font-size: 11px; letter-spacing: 2px; margin-bottom: 10px;">SUPORTE LOGÍSTICA</p>
+            <h1>Preenchimento de Relatório</h1>
+        </header>
+
+        <form id="reportForm" onsubmit="generateReport(event)">
+            <div class="form-section">
+                
+                <div class="section-title">Dados Gerais</div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label for="empresas">Empresas:</label>
+                        <select id="empresas" required>
+                            <option value="TFMC">TFMC</option>
+                            <option value="DOF">DOF</option>
+                            <option value="TFMC/DOF">TFMC/DOF</option>
+                            <option value="CONSTELLATION">CONSTELLATION</option>
+                            <option value="OUTROS">OUTROS</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="unidade">Unidade (Navio):</label>
+                        <input type="text" id="unidade" placeholder="Digite o nome do navio..." required>
+                    </div>
+                </div>
+
+                <div class="grid-3">
+                    <div class="form-group">
+                        <label for="data">Data:</label>
+                        <input type="date" id="data" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="local">Local:</label>
+                        <input type="text" id="local" placeholder="Ex: Macaé, Porto, etc." required>
+                    </div>
+                    <div class="form-group">
+                        <label for="modal">Modal:</label>
+                        <select id="modal" required>
+                            <option value="HELICÓPTERO">HELICÓPTERO</option>
+                            <option value="LANCHA">LANCHA</option>
+                            <option value="ATRACADO">ATRACADO</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="preposto">Nome do Preposto:</label>
+                    <input type="text" id="preposto" value="Rômulo Alves" required>
+                </div>
+
+                <div class="section-title">Controle de Horários</div>
+                
+                <label style="color: #002d62; margin-top: 10px;">Saída do Hotel</label>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label style="font-size: 12px; color: #555;">Previsto:</label>
+                        <input type="time" id="hotel_previsto" required>
+                    </div>
+                    <div class="form-group">
+                        <label style="font-size: 12px; color: #555;">Real:</label>
+                        <input type="time" id="hotel_real" required>
+                    </div>
+                </div>
+
+                <label style="color: #002d62;">Embarque</label>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label style="font-size: 12px; color: #555;">Previsto:</label>
+                        <input type="time" id="embarque_previsto" required>
+                    </div>
+                    <div class="form-group">
+                        <label style="font-size: 12px; color: #555;">Real:</label>
+                        <input type="time" id="embarque_real" required>
+                    </div>
+                </div>
+
+                <label style="color: #002d62;">Atendimento</label>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label style="font-size: 12px; color: #555;">Início:</label>
+                        <input type="time" id="atendimento_inicio" required>
+                    </div>
+                    <div class="form-group">
+                        <label style="font-size: 12px; color: #555;">Fim:</label>
+                        <input type="time" id="atendimento_fim" required>
+                    </div>
+                </div>
+
+                <div class="section-title">Informações da Turma</div>
+                
+                <div class="form-group">
+                    <label for="info_troca">Informações sobre a troca de Turma:</label>
+                    <textarea id="info_troca" placeholder="Descreva os detalhes da operação..."></textarea>
+                </div>
+
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label for="embarcando">Nomes Passageiros Embarcando:</label>
+                        <textarea id="embarcando" placeholder="Digite os nomes dos passageiros..."></textarea>
+                        <div class="tip">Use *texto* para deixar em negrito.</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="desembarcando">Nomes Passageiros Desembarcados:</label>
+                        <textarea id="desembarcando" placeholder="Digite os nomes dos passageiros..."></textarea>
+                        <div class="tip">Use *texto* para deixar em negrito.</div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="actions-bar">
+                <button type="submit" class="btn">Gerar Relatório e Imprimir PDF</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Container do Preview do PDF -->
+    <div id="preview-container">
+        <div class="report-print-box">
+            <div class="report-header">
+                <div class="report-logo">MMS</div>
+                <div class="report-sublogo">SUPORTE LOGÍSTICA</div>
+                <div class="report-title">RELATÓRIO DE TROCA DE TURMA</div>
+            </div>
+
+            <div class="report-row"><span class="report-label">Empresas:</span> <span id="p_empresas"></span></div>
+            <div class="report-row"><span class="report-label">Unidade:</span> <span id="p_unidade"></span></div>
+            <div class="report-row"><span class="report-label">Data:</span> <span id="p_data"></span></div>
+            <div class="report-row"><span class="report-label">Local:</span> <span id="p_local"></span></div>
+            <div class="report-row"><span class="report-label">Modal (helicóptero ou lancha):</span> <span id="p_modal"></span></div>
+            
+            <div class="report-row" style="margin-top: 15px;"><span class="report-label">Horário de Saída do Hotel (previsto e real):</span></div>
+            <div class="report-row">Previsto: <span id="p_hotel_prev"></span>h &nbsp;&nbsp;&nbsp;&nbsp; Real: <span id="p_hotel_real"></span>h</div>
+
+            <div class="report-row" style="margin-top: 15px;"><span class="report-label">Horários de Embarque (previsto e real):</span></div>
+            <div class="report-row">Previsto: <span id="p_emb_prev"></span>h &nbsp;&nbsp;&nbsp;&nbsp; Real: <span id="p_emb_real"></span>h</div>
+
+            <div class="report-row" style="margin-top: 15px;"><span class="report-label">Horário Inicial e de finalização:</span></div>
+            <div class="report-row">Início: <span id="p_atend_ini"></span>h &nbsp;&nbsp; às &nbsp;&nbsp; Fim: <span id="p_atend_fim"></span>h</div>
+
+            <div class="report-row" style="margin-top: 15px;"><span class="report-label">Nome do Preposto:</span> <span id="p_preposto"></span></div>
+
+            <div class="report-row" style="margin-top: 15px;"><span class="report-label">Informações sobre a troca de Turma:</span></div>
+            <div class="report-row" id="p_info_troca" style="white-space: pre-wrap; margin-bottom: 25px;"></div>
+
+            <table class="report-table">
+                <thead>
+                    <tr>
+                        <th>Nomes Passageiros Embarcando:</th>
+                        <th>Nomes Passageiros Desembarcados:</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td id="p_embarcando" style="white-space: pre-wrap;"></td>
+                        <td id="p_desembarcando" style="white-space: pre-wrap;"></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="report-footer">
+                Rua Coronel Sizenando De Souza 522 – Visconde Macaé RJ – CEP 27.943-072<br>
+                E-Mail: mm.suportelogistica@hotmail.com &nbsp;&nbsp; Tel.: (22) 2021-7020
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 20px;" class="no-print">
+            <button onclick="window.print()" class="btn" style="background-color: #28a745;">Confirmar e Salvar PDF</button>
+            <button onclick="document.getElementById('preview-container').style.display='none'" class="btn" style="background-color: #6c757d; margin-left: 10px;">Voltar ao Formulário</button>
+        </div>
+    </div>
+
+    <script>
+        function formatMarkdown(text) {
+            if (!text) return "N/A";
+            return text.replace(/\*(.*?)\*/g, '<strong>$1</strong>');
+        }
+
+        function generateReport(event) {
+            event.preventDefault();
+
+            const empresas = document.getElementById('empresas').value;
+            const unidade = document.getElementById('unidade').value;
+            const dataRaw = document.getElementById('data').value;
+            const local = document.getElementById('local').value;
+            const modal = document.getElementById('modal').value;
+            const preposto = document.getElementById('preposto').value;
+            
+            const hotelPrev = document.getElementById('hotel_previsto').value;
+            const hotelReal = document.getElementById('hotel_real').value;
+            const embPrev = document.getElementById('embarque_previsto').value;
+            const embReal = document.getElementById('embarque_real').value;
+            const atendIni = document.getElementById('atendimento_inicio').value;
+            const atendFim = document.getElementById('atendimento_fim').value;
+            
+            const infoTroca = document.getElementById('info_troca').value || "N/A";
+            const embarcando = document.getElementById('embarcando').value;
+            const desembarcando = document.getElementById('desembarcando').value;
+
+            let dataFormatada = "";
+            if (dataRaw) {
+                const parts = dataRaw.split('-');
+                dataFormatada = parts[2] + '/' + parts[1] + '/' + parts[0];
+            }
+
+            // Injetar no Preview
+            document.getElementById('p_empresas').innerText = empresas;
+            document.getElementById('p_unidade').innerText = unidade;
+            document.getElementById('p_data').innerText = dataFormatada;
+            document.getElementById('p_local').innerText = local;
+            document.getElementById('p_modal').innerText = modal;
+            document.getElementById('p_preposto').innerText = preposto;
+            
+            document.getElementById('p_hotel_prev').innerText = hotelPrev.replace(':', 'h') + 'm';
+            document.getElementById('p_hotel_real').innerText = hotelReal.replace(':', 'h') + 'm';
+            document.getElementById('p_emb_prev').innerText = embPrev.replace(':', 'h') + 'm';
+            document.getElementById('p_emb_real').innerText = embReal.replace(':', 'h') + 'm';
+            document.getElementById('p_atend_ini').innerText = atendIni.replace(':', 'h') + 'm';
+            document.getElementById('p_atend_fim').innerText = atendFim.replace(':', 'h') + 'm';
+            
+            document.getElementById('p_info_troca').innerHTML = formatMarkdown(infoTroca);
+            document.getElementById('p_embarcando').innerHTML = formatMarkdown(embarcando);
+            document.getElementById('p_desembarcando').innerHTML = formatMarkdown(desembarcando);
+
+            const previewContainer = document.getElementById('preview-container');
+            previewContainer.style.display = 'block';
+            previewContainer.scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
