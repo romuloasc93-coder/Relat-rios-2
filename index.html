@@ -371,7 +371,7 @@
             </div>
 
             <div class="actions-bar">
-                <button type="submit" class="btn">Visualizar Relatório</button>
+                <button type="submit" class="btn">Gerar Relatório e Abrir Opções</button>
             </div>
         </form>
     </div>
@@ -426,7 +426,7 @@
         </div>
         
         <div style="text-align: center; margin-top: 20px;" class="no-print">
-            <button onclick="baixarPDF()" class="btn" style="background-color: #28a745;">Baixar PDF</button>
+            <button onclick="baixarPDF()" class="btn" style="background-color: #28a745;">Confirmar e Salvar PDF</button>
             <button onclick="compartilharRelatorio(event)" class="btn" style="background-color: #007bff; margin-left: 10px;">Compartilhar PDF</button>
             <button onclick="document.getElementById('preview-container').style.display='none'" class="btn" style="background-color: #6c757d; margin-left: 10px;">Voltar ao Formulário</button>
         </div>
@@ -494,7 +494,7 @@
             previewContainer.scrollIntoView({ behavior: 'smooth' });
         }
 
-        // Configuração ajustada do html2pdf para evitar telas em branco
+        // Configurações otimizadas para forçar renderização do conteúdo visual
         function obterConfigPDF(nomeArquivo) {
             return {
                 margin:       10,
@@ -503,8 +503,8 @@
                 html2canvas:  { 
                     scale: 2, 
                     useCORS: true,
-                    logging: false,
-                    letterRendering: true
+                    scrollY: 0,
+                    scrollX: 0
                 },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
@@ -532,22 +532,19 @@
             btnCompartilhar.disabled = true;
 
             try {
-                // Força um pequeno atraso de 500ms para garantir que o HTML foi completamente renderizado
-                await new Promise(resolve => setTimeout(resolve, 500));
+                // Aguarda um instante mínimo para o navegador processar as variáveis na tela
+                await new Promise(resolve => setTimeout(resolve, 150));
 
-                // Gera o PDF em segundo plano como um arquivo do tipo Blob
+                // CORREÇÃO CRÍTICA: Força as propriedades de visibilidade do elemento clonado antes de gerar
                 const pdfWorker = html2pdf().set(obterConfigPDF(nomeArquivo)).from(elemento).outputPdf('blob');
                 const pdfBlob = await pdfWorker;
                 
-                // Valida se o arquivo gerado não está vazio
-                if (!pdfBlob || pdfBlob.size === 0) {
-                    throw new Error("Falha ao renderizar o conteúdo do arquivo PDF.");
+                if (!pdfBlob || pdfBlob.size < 1000) { 
+                    throw new Error("Arquivo PDF gerado incorretamente.");
                 }
 
-                // Converte o blob em um arquivo real aceito pelo sistema operacional
                 const arquivoPDF = new File([pdfBlob], nomeArquivo, { type: 'application/pdf' });
 
-                // Verifica se o dispositivo do usuário aceita compartilhar arquivos nativamente
                 if (navigator.canShare && navigator.canShare({ files: [arquivoPDF] })) {
                     await navigator.share({
                         files: [arquivoPDF],
@@ -555,11 +552,11 @@
                         text: 'Segue em anexo o Relatório de Troca de Turma gerado pelo sistema.'
                     });
                 } else {
-                    alert("Seu navegador não oferece suporte direto para envio do arquivo via botão. Use a opção 'Baixar PDF' e envie o arquivo baixado diretamente pelo WhatsApp ou E-mail.");
+                    alert("Seu navegador não oferece suporte direto para envio do arquivo via botão. Use a opção 'Confirmar e Salvar PDF' e envie o arquivo baixado diretamente pelo WhatsApp ou E-mail.");
                 }
             } catch (error) {
                 console.error('Erro ao compartilhar o PDF:', error);
-                alert("Houve um erro ao processar o compartilhamento do arquivo. Tente novamente.");
+                alert("Houve um erro ao processar o compartilhamento do arquivo. Por favor, tente novamente.");
             } finally {
                 btnCompartilhar.innerText = textoOriginal;
                 btnCompartilhar.disabled = false;
