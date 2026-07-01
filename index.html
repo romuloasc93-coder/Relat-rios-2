@@ -243,7 +243,7 @@
                 padding: 0;
                 display: block !important;
             }
-            .btn, .actions-bar, header, .form-section {
+            .btn, .actions-bar, header, .form-section, .no-print {
                 display: none !important;
             }
         }
@@ -272,9 +272,9 @@
                     <div class="form-group">
                         <label for="empresas">Empresas:</label>
                         <select id="empresas" required>
-                            <option value="TFMC">TFMC</option>
+                            <option value="TECHNIP">TECHNIP</option>
                             <option value="DOF">DOF</option>
-                            <option value="TFMC/DOF">TFMC/DOF</option>
+                            <option value="TECHNIP/DOF">TECHNIP/DOF</option>
                             <option value="CONSTELLATION">CONSTELLATION</option>
                             <option value="OUTROS">OUTROS</option>
                         </select>
@@ -427,6 +427,7 @@
         
         <div style="text-align: center; margin-top: 20px;" class="no-print">
             <button onclick="window.print()" class="btn" style="background-color: #28a745;">Confirmar e Salvar PDF</button>
+            <button onclick="compartilharRelatorio()" class="btn" style="background-color: #007bff; margin-left: 10px;">Compartilhar Relatório</button>
             <button onclick="document.getElementById('preview-container').style.display='none'" class="btn" style="background-color: #6c757d; margin-left: 10px;">Voltar ao Formulário</button>
         </div>
     </div>
@@ -486,6 +487,33 @@
             const previewContainer = document.getElementById('preview-container');
             previewContainer.style.display = 'block';
             previewContainer.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function compartilharRelatorio() {
+            const empresa = document.getElementById('p_empresas').innerText;
+            const unidade = document.getElementById('p_unidade').innerText;
+            const data = document.getElementById('p_data').innerText;
+            const preposto = document.getElementById('p_preposto').innerText;
+
+            const textoCompartilhar = `📋 *MMS Suporte Logística - Relatório de Troca de Turma*\n\n` +
+                                     `• *Empresa:* ${empresa}\n` +
+                                     `• *Unidade:* ${unidade}\n` +
+                                     `• *Data:* ${data}\n` +
+                                     `• *Preposto:* ${preposto}\n\n` +
+                                     `Confira o relatório completo acessando o link do sistema.`;
+
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Relatório MMS Suporte Logística',
+                    text: textoCompartilhar,
+                    url: window.location.href
+                })
+                .then(() => console.log('Compartilhado com sucesso!'))
+                .catch((error) => console.log('Erro ao compartilhar:', error));
+            } else {
+                const urlWhatsApp = `https://api.whatsapp.com/send?text=${encodeURIComponent(textoCompartilhar + " " + window.location.href)}`;
+                window.open(urlWhatsApp, '_blank');
+            }
         }
     </script>
 </body>
