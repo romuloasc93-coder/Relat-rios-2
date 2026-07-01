@@ -494,7 +494,6 @@
             previewContainer.scrollIntoView({ behavior: 'smooth' });
         }
 
-        // Configurações otimizadas para forçar renderização do conteúdo visual
         function obterConfigPDF(nomeArquivo) {
             return {
                 margin:       10,
@@ -510,10 +509,18 @@
             };
         }
 
+        // AJUSTE SOLICITADO: Função atualizada para nomear o arquivo dinamicamente na ordem: Unidade_Empresa_Data
         function obterNomeArquivo() {
-            const empresa = document.getElementById('p_empresas').innerText || "MMS";
-            const unidade = document.getElementById('p_unidade').innerText || "Relatorio";
-            return `Relatorio_${empresa}_${unidade.replace(/\s+/g, '_')}.pdf`;
+            const unidade = document.getElementById('p_unidade').innerText || "Unidade";
+            const empresa = document.getElementById('p_empresas').innerText || "Empresa";
+            const dataOriginal = document.getElementById('p_data').innerText || "";
+            
+            // Substitui as barras '/' por traços '-' na data para evitar bugs no salvamento de arquivos do sistema operacional
+            const dataFormatadaParaNome = dataOriginal.replace(/\//g, '-');
+
+            // Junta tudo e remove espaços em branco extras substituindo por underline (_)
+            const nomeGerado = `${unidade}_${empresa}_${dataFormatadaParaNome}`;
+            return `${nomeGerado.replace(/\s+/g, '_')}.pdf`;
         }
 
         function baixarPDF() {
@@ -532,10 +539,8 @@
             btnCompartilhar.disabled = true;
 
             try {
-                // Aguarda um instante mínimo para o navegador processar as variáveis na tela
                 await new Promise(resolve => setTimeout(resolve, 150));
 
-                // CORREÇÃO CRÍTICA: Força as propriedades de visibilidade do elemento clonado antes de gerar
                 const pdfWorker = html2pdf().set(obterConfigPDF(nomeArquivo)).from(elemento).outputPdf('blob');
                 const pdfBlob = await pdfWorker;
                 
